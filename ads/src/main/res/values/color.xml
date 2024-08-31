@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ads_color_primary">#00FF00</color>
+    <color name="ads_color_primary_dark">#000</color>
+    <color name="ads_color_accent">#00FF00</color>
+    <color name="ads_color_ads">#068abf</color>
+    <color name="ads_color_white">#ffffffff</color>
+    <color name="ads_stroke_card">#5E58595A</color>
+    <color name="ads_light_transparent">#16000000</color>
+    <color name="ads_black">#000000</color>
+    <color name="ads_text_exit">#2152FF</color>
+    <color name="ads_color_app">#068abf</color>
+    <color name="ads_native_bg_btn">#16000000</color>
+    <color name="ads_native_bg_stoke">#C6C6C6</color>
+    <color name="ads_native_bg">#F8F8F8</color>
+    <color name="ads_native_bg_ad">#2152FF</color>
+    <color name="ads_native_text_color">#000000</color>
+    <color name="ads_native_text_color_btn">#FFFFFF</color>
+    <color name="ads_color_bg">#F0F0E6</color>
+
+    <color name="text_color_ad_body">#666666</color>
+    <color name="text_color_ad_call_to_action">#666666</color>
+    <color name="text_color_ad_advertiser">#000000</color>
+    <color name="text_color_ad_headline">#068abf</color>
+
+    <color name="color_shimmer">#A39F9F</color>
+</resources>

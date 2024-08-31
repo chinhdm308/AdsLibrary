@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/ads_color_primary</item>
+        <item name="colorPrimaryDark">@color/ads_color_primary_dark</item>
+        <item name="colorAccent">@color/ads_color_accent</item>
+    </style>
+
+    <style name="NoTitleDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="AdsIconStyle" parent="Theme.AppCompat.Light">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">#ffffff</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/ads_icon</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:paddingBottom">2dp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:text">Ad</item>
+    </style>
+
+    <style name="AdHeadLineStyle" parent="Theme.AppCompat.Light">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">2</item>
+        <item name="android:textColor">@color/text_color_ad_headline</item>
+        <item name="android:textSize">@dimen/text_size_ad_headline</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AdAdvertiserStyle" parent="Theme.AppCompat.Light">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/text_color_ad_advertiser</item>
+        <item name="android:textSize">@dimen/text_size_ad_advertiser</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="AdBodyStyle" parent="Theme.AppCompat.Light">
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:textColor">@color/text_color_ad_body</item>
+        <item name="android:textSize">@dimen/text_size_ad_body</item>
+    </style>
+
+    <style name="AdCallToActionStyle" parent="Theme.AppCompat.Light">
+        <item name="android:textColor">@color/text_color_ad_call_to_action</item>
+        <item name="android:textSize">@dimen/text_size_ad_call_to_action</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_btn_ads_native</item>
+        <item name="android:text">Install</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">match_parent</item>
+    </style>
+
+    <style name="AdAppIconStyle" parent="Theme.AppCompat.Light">
+        <item name="android:layout_width">50dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:adjustViewBounds">true</item>
+        <item name="android:contentDescription">@string/ads_todo</item>
+    </style>
+
+    <style name="AdMediaStyle" parent="Theme.AppCompat.Light">
+        <item name="android:layout_height">@dimen/height_ad_media</item>
+        <item name="android:minHeight">@dimen/height_ad_media</item>
+    </style>
+
+</resources>

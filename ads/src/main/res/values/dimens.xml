@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="height_native_ads">320dip</dimen>
+    <dimen name="height_native_small_ads">130dip</dimen>
+    <dimen name="height_full_ads">300dip</dimen>
+
+    <dimen name="height_ad_media">120dp</dimen>
+
+    // text size
+    <dimen name="text_size_ad_call_to_action">16sp</dimen>
+    <dimen name="text_size_ad_body">12sp</dimen>
+    <dimen name="text_size_ad_advertiser">12sp</dimen>
+    <dimen name="text_size_ad_headline">14sp</dimen>
+</resources>
