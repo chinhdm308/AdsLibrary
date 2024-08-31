@@ -1,69 +1,47 @@
-package com.chinchin.ads.iap;
+package com.chinchin.ads.iap
 
-import android.app.Activity;
-import android.content.Context;
-import android.util.Log;
+import android.app.Activity
+import android.content.Context
+import android.util.Log
+import com.android.billingclient.api.BillingClient
+import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams
+import com.android.billingclient.api.BillingResult
+import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
+import com.android.billingclient.api.PurchasesUpdatedListener
+import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
+import com.google.common.collect.ImmutableList
+import kotlin.concurrent.Volatile
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+class IAPManager {
+    private var billingClient: BillingClient? = null
+    private var purchaseCallback: PurchaseCallback? = null
+    private val listInAppProduct = ArrayList<QueryProductDetailsParams.Product>()
+    private val listSubProduct = ArrayList<QueryProductDetailsParams.Product>()
+    private var productDetailsListInApp: List<ProductDetails> = ArrayList()
+    private var productDetailsListSub: List<ProductDetails> = ArrayList()
+    private val productDetailsInAppMap: MutableMap<String, ProductDetails> = HashMap()
+    private val productDetailsSubsMap: MutableMap<String, ProductDetails> = HashMap()
+    private var isPurchase: Boolean = false
+    private var isPurchaseTest = false
+    private var isVerifyInApp = false
+    private var isVerifySub = false
 
-import com.android.billingclient.api.BillingClient;
-import com.android.billingclient.api.BillingClientStateListener;
-import com.android.billingclient.api.BillingFlowParams;
-import com.android.billingclient.api.BillingResult;
-import com.android.billingclient.api.ProductDetails;
-import com.android.billingclient.api.Purchase;
-import com.android.billingclient.api.PurchasesUpdatedListener;
-import com.android.billingclient.api.QueryProductDetailsParams;
-import com.android.billingclient.api.QueryPurchasesParams;
-import com.google.common.collect.ImmutableList;
+    fun isPurchase(): Boolean = isPurchase
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class IAPManager {
-    private static final String TAG = "IAPManager";
-    public static final String PRODUCT_ID_TEST = "android.test.purchased";
-    private static volatile IAPManager instance;
-    private BillingClient billingClient;
-    private PurchaseCallback purchaseCallback;
-    public static String typeINAPP = BillingClient.ProductType.INAPP, typeSUBS = BillingClient.ProductType.SUBS;
-    private final ArrayList<QueryProductDetailsParams.Product> listInAppProduct = new ArrayList<>();
-    private final ArrayList<QueryProductDetailsParams.Product> listSubProduct = new ArrayList<>();
-    private List<ProductDetails> productDetailsListInApp = new ArrayList<>();
-    private List<ProductDetails> productDetailsListSub = new ArrayList<>();
-    private final Map<String, ProductDetails> productDetailsInAppMap = new HashMap<>();
-    private final Map<String, ProductDetails> productDetailsSubsMap = new HashMap<>();
-    private boolean isPurchase = false;
-    private boolean isPurchaseTest = false;
-    private boolean isVerifyInApp = false;
-    private boolean isVerifySub = false;
-
-    public static IAPManager getInstance() {
-        if (instance == null) {
-            synchronized (IAPManager.class) {
-                if (instance == null) instance = new IAPManager();
-            }
-        }
-        return instance;
+    fun setIsPurchase(isPurchase: Boolean) {
+        this.isPurchase = isPurchase
     }
 
-    public boolean isPurchase() {
-        return this.isPurchase;
+    fun setPurchaseTest(isPurchaseTest: Boolean) {
+        this.isPurchaseTest = isPurchaseTest
     }
 
-    public void setPurchase(boolean isPurchase) {
-        this.isPurchase = isPurchase;
-    }
-
-    public void setPurchaseTest(boolean isPurchaseTest) {
-        this.isPurchaseTest = isPurchaseTest;
-    }
-
-    public void setPurchaseListener(PurchaseCallback purchaseCallback) {
-        this.purchaseCallback = purchaseCallback;
+    fun setPurchaseListener(purchaseCallback: PurchaseCallback?) {
+        this.purchaseCallback = purchaseCallback
     }
 
     /**
@@ -73,51 +51,54 @@ public class IAPManager {
      * @param listProductDetailCustoms A list of custom product details.
      * @param billingCallback          A callback interface to handle billing-related events.
      */
-    public void initBilling(Context context, ArrayList<ProductDetailCustom> listProductDetailCustoms, BillingCallback billingCallback) {
-        setListProductDetails(listProductDetailCustoms);
+    fun initBilling(context: Context?, listProductDetailCustoms: ArrayList<ProductDetailCustom>, billingCallback: BillingCallback) {
+        setListProductDetails(listProductDetailCustoms)
         // Handle an error caused by a user cancelling the purchase flow.
         // Handle any other error codes.
-        PurchasesUpdatedListener purchasesUpdatedListener = new PurchasesUpdatedListener() {
-            @Override
-            public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
-                // Hàm này sẽ trả về kết quả khi người dùng thực hiện mua hàng.
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null) {
-                    for (Purchase purchase : list) {
-                        handlePurchase(purchase);
-                    }
-                    Log.d(TAG, "onPurchasesUpdated OK");
-                } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
-                    // Handle an error caused by a user cancelling the purchase flow.
-                    if (purchaseCallback != null) {
-                        purchaseCallback.onUserCancelBilling();
-                    }
-                    Log.d(TAG, "user cancelling the purchase flow");
-                } else {
-                    // Handle any other error codes.
-                    Log.d(TAG, "onPurchasesUpdated:... ");
+        val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, list ->
+            // Hàm này sẽ trả về kết quả khi người dùng thực hiện mua hàng.
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && list != null) {
+                for (purchase in list) {
+                    handlePurchase(purchase)
                 }
+                Log.d(TAG, "onPurchasesUpdated OK")
+            } else if (billingResult.responseCode == BillingClient.BillingResponseCode.USER_CANCELED) {
+                // Handle an error caused by a user cancelling the purchase flow.
+                if (purchaseCallback != null) {
+                    purchaseCallback!!.onUserCancelBilling()
+                }
+                Log.d(TAG, "user cancelling the purchase flow")
+            } else {
+                // Handle any other error codes.
+                Log.d(TAG, "onPurchasesUpdated:... ")
             }
-        };
-        billingClient = BillingClient.newBuilder(context)
-                .setListener(purchasesUpdatedListener)
-                .enablePendingPurchases()
-                .build();
+        }
+        billingClient = BillingClient.newBuilder(context!!)
+            .setListener(purchasesUpdatedListener)
+            .enablePendingPurchases()
+            .build()
 
         // Connect ứng dụng của bạn với Google Billing
-        connectToGooglePlay(billingCallback);
+        connectToGooglePlay(billingCallback)
     }
 
-    private void setListProductDetails(ArrayList<ProductDetailCustom> listProductDetailCustoms) {
+    private fun setListProductDetails(listProductDetailCustoms: ArrayList<ProductDetailCustom>) {
         //check case purchase test -> auto add id product test to list
         if (isPurchaseTest) {
-            listInAppProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(PRODUCT_ID_TEST).setProductType(typeINAPP).build());
-            listSubProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(PRODUCT_ID_TEST).setProductType(typeSUBS).build());
+            listInAppProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(PRODUCT_ID_TEST).setProductType(INAPP).build())
+            listSubProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(PRODUCT_ID_TEST).setProductType(SUBS).build())
         }
-        for (ProductDetailCustom productDetailCustom : listProductDetailCustoms) {
-            if (productDetailCustom.getProductType().equals(typeINAPP)) {
-                listInAppProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(productDetailCustom.getProductId()).setProductType(productDetailCustom.getProductType()).build());
-            } else if (productDetailCustom.getProductType().equals(typeSUBS)) {
-                listSubProduct.add(QueryProductDetailsParams.Product.newBuilder().setProductId(productDetailCustom.getProductId()).setProductType(productDetailCustom.getProductType()).build());
+        for (productDetailCustom in listProductDetailCustoms) {
+            if (productDetailCustom.productType == INAPP) {
+                listInAppProduct.add(
+                    QueryProductDetailsParams.Product.newBuilder().setProductId(productDetailCustom.productId)
+                        .setProductType(productDetailCustom.productType).build()
+                )
+            } else if (productDetailCustom.productType == SUBS) {
+                listSubProduct.add(
+                    QueryProductDetailsParams.Product.newBuilder().setProductId(productDetailCustom.productId)
+                        .setProductType(productDetailCustom.productType).build()
+                )
             }
         }
     }
@@ -127,35 +108,33 @@ public class IAPManager {
      *
      * @param billingCallback A callback interface to handle billing-related events.
      */
-    private void connectToGooglePlay(BillingCallback billingCallback) {
-        billingClient.startConnection(new BillingClientStateListener() {
-            @Override
-            public void onBillingSetupFinished(@NonNull BillingResult billingResult) {
+    private fun connectToGooglePlay(billingCallback: BillingCallback) {
+        billingClient!!.startConnection(object : BillingClientStateListener {
+            override fun onBillingSetupFinished(billingResult: BillingResult) {
                 // Connect tới Google Play thành công. Bạn đã có thể lấy những sản phẩm mà người dùng đã mua
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
                     // The BillingClient is ready. You can query purchases here.
                     // The connection to the Google Play Billing service was successful
                     // Verify the user's purchases
-                    verifyPurchased(billingCallback);
+                    verifyPurchased(billingCallback)
                     // Retrieve the details of the available in-app purchase and subscription products
-                    showProductsAvailableToBuy(listInAppProduct, listSubProduct);
-                    Log.d(TAG, "onBillingSetupFinished OK: " + billingResult.getResponseCode());
+                    showProductsAvailableToBuy(listInAppProduct, listSubProduct)
+                    Log.d(TAG, "onBillingSetupFinished OK: " + billingResult.responseCode)
                 } else {
                     // The connection to the Google Play Billing service was not successful
                     // Notify the billing callback of the error
-                    billingCallback.onBillingSetupFinished(billingResult.getResponseCode());
-                    Log.d(TAG, "onBillingSetupFinished NOT OK: " + billingResult.getResponseCode() + ": " + billingResult.getDebugMessage());
+                    billingCallback.onBillingSetupFinished(billingResult.responseCode)
+                    Log.d(TAG, "onBillingSetupFinished NOT OK: " + billingResult.responseCode + ": " + billingResult.debugMessage)
                 }
             }
 
-            @Override
-            public void onBillingServiceDisconnected() {
-                billingCallback.onBillingServiceDisconnected();
+            override fun onBillingServiceDisconnected() {
+                billingCallback.onBillingServiceDisconnected()
                 // Try to restart the connection on the next request to
                 // Google Play by calling the startConnection() method.
-                Log.d(TAG, "onBillingServiceDisconnected");
+                Log.d(TAG, "onBillingServiceDisconnected")
             }
-        });
+        })
     }
 
     /**
@@ -164,110 +143,113 @@ public class IAPManager {
      * @param listIAPProduct The list of in-app purchase product IDs.
      * @param listSubProduct The list of subscription product IDs.
      */
-    private void showProductsAvailableToBuy(ArrayList<QueryProductDetailsParams.Product> listIAPProduct, ArrayList<QueryProductDetailsParams.Product> listSubProduct) {
+    private fun showProductsAvailableToBuy(
+        listIAPProduct: ArrayList<QueryProductDetailsParams.Product>,
+        listSubProduct: ArrayList<QueryProductDetailsParams.Product>,
+    ) {
         if (!listIAPProduct.isEmpty()) {
-            QueryProductDetailsParams queryProductDetailsParamsIAP = QueryProductDetailsParams.newBuilder().setProductList(listIAPProduct).build();
-            billingClient.queryProductDetailsAsync(queryProductDetailsParamsIAP, (billingResult, productDetailsList) -> {
+            val queryProductDetailsParamsIAP = QueryProductDetailsParams.newBuilder().setProductList(listIAPProduct).build()
+            billingClient!!.queryProductDetailsAsync(queryProductDetailsParamsIAP) { billingResult: BillingResult?, productDetailsList: List<ProductDetails> ->
                 // check billingResult
                 // process returned productDetailsList
-                productDetailsListInApp = productDetailsList;
-                addProductDetailsINAPToMap(productDetailsList);
-            });
+                productDetailsListInApp = productDetailsList
+                addProductDetailsINAPToMap(productDetailsList)
+            }
         }
         if (!listSubProduct.isEmpty()) {
-            QueryProductDetailsParams queryProductDetailsParamsSub = QueryProductDetailsParams.newBuilder().setProductList(listSubProduct).build();
-            billingClient.queryProductDetailsAsync(queryProductDetailsParamsSub, (billingResult, productDetailsList) -> {
+            val queryProductDetailsParamsSub = QueryProductDetailsParams.newBuilder().setProductList(listSubProduct).build()
+            billingClient!!.queryProductDetailsAsync(queryProductDetailsParamsSub) { billingResult: BillingResult?, productDetailsList: List<ProductDetails> ->
                 // check billingResult
                 // process returned productDetailsList
-                productDetailsListSub = productDetailsList;
-                addProductDetailsSubsToMap(productDetailsList);
-            });
+                productDetailsListSub = productDetailsList
+                addProductDetailsSubsToMap(productDetailsList)
+            }
         }
     }
 
-    private void addProductDetailsINAPToMap(List<ProductDetails> productDetailsList) {
-        for (ProductDetails productDetails : productDetailsList) {
-            productDetailsInAppMap.put(productDetails.getProductId(), productDetails);
+    private fun addProductDetailsINAPToMap(productDetailsList: List<ProductDetails>) {
+        for (productDetails in productDetailsList) {
+            productDetailsInAppMap[productDetails.productId] = productDetails
         }
     }
 
-    private void addProductDetailsSubsToMap(List<ProductDetails> productDetailsList) {
-        for (ProductDetails productDetails : productDetailsList) {
-            productDetailsSubsMap.put(productDetails.getProductId(), productDetails);
+    private fun addProductDetailsSubsToMap(productDetailsList: List<ProductDetails>) {
+        for (productDetails in productDetailsList) {
+            productDetailsSubsMap[productDetails.productId] = productDetails
         }
     }
 
-    public String purchase(Activity activity, String productId) {
-        ProductDetails productDetails = productDetailsInAppMap.get(productId);
+    fun purchase(activity: Activity, productId: String): String {
+        val productDetails = productDetailsInAppMap[productId]
         if (isPurchaseTest) {
-            PurchaseTestBottomSheet purchaseTestBottomSheet = new PurchaseTestBottomSheet(typeINAPP, productDetails, activity, purchaseCallback);
-            purchaseTestBottomSheet.show();
-            return "Purchase Test BottomSheet";
+            val purchaseTestBottomSheet = PurchaseTestBottomSheet(
+                context = activity,
+                typeIap = INAPP,
+                productDetails = productDetails,
+                purchaseCallback = purchaseCallback
+            )
+            purchaseTestBottomSheet.show()
+            return "Purchase Test BottomSheet"
         }
         if (productDetails == null) {
-            return "Product id invalid";
+            return "Product id invalid"
         }
-        ImmutableList<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = ImmutableList.of(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(productDetails).build());
+        val productDetailsParamsList = ImmutableList.of(ProductDetailsParams.newBuilder().setProductDetails(productDetails).build())
 
-        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList).build();
+        val billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList).build()
 
         // Launch the billing flow
-        BillingResult billingResult = billingClient.launchBillingFlow(activity, billingFlowParams);
-        return switch (billingResult.getResponseCode()) {
-            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> "Billing not supported for type of request";
-            case BillingClient.BillingResponseCode.ITEM_NOT_OWNED, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> "";
-            case BillingClient.BillingResponseCode.ERROR -> "Error completing request";
-            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED -> "Error processing request.";
-            case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "Selected item is already owned";
-            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE -> "Item not available";
-            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> "Play Store service is not connected now";
-            case BillingClient.BillingResponseCode.SERVICE_TIMEOUT -> "Timeout";
-            case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE -> "Network Connection down";
-            case BillingClient.BillingResponseCode.USER_CANCELED -> "Request Canceled";
-            case BillingClient.BillingResponseCode.OK -> "Subscribed Successfully";
-            default -> "";
-        };
+        val billingResult = billingClient!!.launchBillingFlow(activity, billingFlowParams)
+        return when (billingResult.responseCode) {
+            BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> "Billing not supported for type of request"
+            BillingClient.BillingResponseCode.ITEM_NOT_OWNED, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> ""
+            BillingClient.BillingResponseCode.ERROR -> "Error completing request"
+            BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED -> "Error processing request."
+            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "Selected item is already owned"
+            BillingClient.BillingResponseCode.ITEM_UNAVAILABLE -> "Item not available"
+            BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> "Play Store service is not connected now"
+            BillingClient.BillingResponseCode.SERVICE_TIMEOUT -> "Timeout"
+            BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE -> "Network Connection down"
+            BillingClient.BillingResponseCode.USER_CANCELED -> "Request Canceled"
+            BillingClient.BillingResponseCode.OK -> "Subscribed Successfully"
+            else -> ""
+        }
     }
 
-    public String subscribe(Activity activity, String productId) {
+    fun subscribe(activity: Activity, productId: String): String {
         if (isPurchaseTest) {
-            purchase(activity, PRODUCT_ID_TEST);
+            purchase(activity, PRODUCT_ID_TEST)
         }
-        ProductDetails productDetails = productDetailsSubsMap.get(productId);
-        if (productDetails == null) {
-            return "Product id invalid";
-        }
-        List<ProductDetails.SubscriptionOfferDetails> subsDetail = productDetails.getSubscriptionOfferDetails();
-        if (subsDetail == null) {
-            return "Get Subscription Offer Details fail";
-        }
-        String offerToken = subsDetail.get(subsDetail.size() - 1).getOfferToken();
-        ImmutableList<BillingFlowParams.ProductDetailsParams> productDetailsParamsList = ImmutableList.of(BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(productDetails).setOfferToken(offerToken).build());
+        val productDetails = productDetailsSubsMap[productId] ?: return "Product id invalid"
+        val subsDetail = productDetails.subscriptionOfferDetails ?: return "Get Subscription Offer Details fail"
+        val offerToken = subsDetail[subsDetail.size - 1].offerToken
+        val productDetailsParamsList =
+            ImmutableList.of(ProductDetailsParams.newBuilder().setProductDetails(productDetails).setOfferToken(offerToken).build())
 
-        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList).build();
+        val billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(productDetailsParamsList).build()
 
         // Launch the billing flow
-        BillingResult billingResult = billingClient.launchBillingFlow(activity, billingFlowParams);
-        return switch (billingResult.getResponseCode()) {
-            case BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> "Billing not supported for type of request";
-            case BillingClient.BillingResponseCode.ITEM_NOT_OWNED, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> "";
-            case BillingClient.BillingResponseCode.ERROR -> "Error completing request";
-            case BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED -> "Error processing request.";
-            case BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "Selected item is already owned";
-            case BillingClient.BillingResponseCode.ITEM_UNAVAILABLE -> "Item not available";
-            case BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> "Play Store service is not connected now";
-            case BillingClient.BillingResponseCode.SERVICE_TIMEOUT -> "Timeout";
-            case BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE -> "Network Connection down";
-            case BillingClient.BillingResponseCode.USER_CANCELED -> "Request Canceled";
-            case BillingClient.BillingResponseCode.OK -> "Subscribed Successfully";
-            default -> "";
-        };
+        val billingResult = billingClient!!.launchBillingFlow(activity, billingFlowParams)
+        return when (billingResult.responseCode) {
+            BillingClient.BillingResponseCode.BILLING_UNAVAILABLE -> "Billing not supported for type of request"
+            BillingClient.BillingResponseCode.ITEM_NOT_OWNED, BillingClient.BillingResponseCode.DEVELOPER_ERROR -> ""
+            BillingClient.BillingResponseCode.ERROR -> "Error completing request"
+            BillingClient.BillingResponseCode.FEATURE_NOT_SUPPORTED -> "Error processing request."
+            BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "Selected item is already owned"
+            BillingClient.BillingResponseCode.ITEM_UNAVAILABLE -> "Item not available"
+            BillingClient.BillingResponseCode.SERVICE_DISCONNECTED -> "Play Store service is not connected now"
+            BillingClient.BillingResponseCode.SERVICE_TIMEOUT -> "Timeout"
+            BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE -> "Network Connection down"
+            BillingClient.BillingResponseCode.USER_CANCELED -> "Request Canceled"
+            BillingClient.BillingResponseCode.OK -> "Subscribed Successfully"
+            else -> ""
+        }
     }
 
-    private void handlePurchase(Purchase purchase) {
-        isPurchase = true;
+    private fun handlePurchase(purchase: Purchase) {
+        isPurchase = true
         if (purchaseCallback != null) {
-            purchaseCallback.onProductPurchased(purchase.getOrderId(), purchase.getOriginalJson());
+            purchaseCallback!!.onProductPurchased(purchase.orderId, purchase.originalJson)
         }
     }
 
@@ -276,48 +258,52 @@ public class IAPManager {
      *
      * @param billingCallback A callback interface that will be notified when the billing setup is finished.
      */
-    private void verifyPurchased(BillingCallback billingCallback) {
-        if (!listInAppProduct.isEmpty()) {
-            billingClient.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(typeINAPP).build(), (billingResult, list) -> {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    for (Purchase purchase : list) {
-                        for (QueryProductDetailsParams.Product id : listInAppProduct) {
-                            if (purchase.getProducts().contains(id.zza())) {
-                                isPurchase = true;
+    private fun verifyPurchased(billingCallback: BillingCallback) {
+        if (listInAppProduct.isNotEmpty()) {
+            billingClient!!.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder().setProductType(INAPP).build()
+            ) { billingResult: BillingResult, list: List<Purchase> ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    for (purchase in list) {
+                        for (id in listInAppProduct) {
+                            if (purchase.products.contains(id.zza())) {
+                                isPurchase = true
                             }
                         }
                     }
                 }
-                isVerifyInApp = true;
+                isVerifyInApp = true
                 if (!listSubProduct.isEmpty()) {
                     if (isVerifySub) {
-                        billingCallback.onBillingSetupFinished(billingResult.getResponseCode());
+                        billingCallback.onBillingSetupFinished(billingResult.responseCode)
                     }
                 } else {
-                    billingCallback.onBillingSetupFinished(billingResult.getResponseCode());
+                    billingCallback.onBillingSetupFinished(billingResult.responseCode)
                 }
-            });
+            }
         }
         if (!listSubProduct.isEmpty()) {
-            billingClient.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build(), (billingResult, list) -> {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                    for (Purchase purchase : list) {
-                        for (QueryProductDetailsParams.Product id : listSubProduct) {
-                            if (purchase.getProducts().contains(id.zza())) {
-                                isPurchase = true;
+            billingClient!!.queryPurchasesAsync(
+                QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).build()
+            ) { billingResult: BillingResult, list: List<Purchase> ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    for (purchase in list) {
+                        for (id in listSubProduct) {
+                            if (purchase.products.contains(id.zza())) {
+                                isPurchase = true
                             }
                         }
                     }
                 }
-                isVerifySub = true;
+                isVerifySub = true
                 if (!listInAppProduct.isEmpty()) {
                     if (isVerifyInApp) {
-                        billingCallback.onBillingSetupFinished(billingResult.getResponseCode());
+                        billingCallback.onBillingSetupFinished(billingResult.responseCode)
                     }
                 } else {
-                    billingCallback.onBillingSetupFinished(billingResult.getResponseCode());
+                    billingCallback.onBillingSetupFinished(billingResult.responseCode)
                 }
-            });
+            }
         }
     }
 
@@ -327,12 +313,11 @@ public class IAPManager {
      * @param productId The unique identifier of the product.
      * @return The formatted price of the one-time purchase offer, or an empty string if the product details are not found or the one-time purchase offer details are not available.
      */
-    public String getPrice(String productId) {
-        ProductDetails productDetails = productDetailsInAppMap.get(productId);
-        if (productDetails == null) return "";
-        if (productDetails.getOneTimePurchaseOfferDetails() == null) return "";
-        Log.e(TAG, "getPrice: " + productDetails.getOneTimePurchaseOfferDetails().getFormattedPrice());
-        return productDetails.getOneTimePurchaseOfferDetails().getFormattedPrice();
+    fun getPrice(productId: String): String {
+        val productDetails = productDetailsInAppMap[productId] ?: return ""
+        if (productDetails.oneTimePurchaseOfferDetails == null) return ""
+        Log.e(TAG, "getPrice: " + productDetails.oneTimePurchaseOfferDetails!!.formattedPrice)
+        return productDetails.oneTimePurchaseOfferDetails!!.formattedPrice
     }
 
     /**
@@ -341,14 +326,12 @@ public class IAPManager {
      * @param productId The unique identifier of the product.
      * @return The formatted price of the last subscription offer, or an empty string if the product details are not found.
      */
-    public String getPriceSub(String productId) {
-        ProductDetails productDetails = productDetailsSubsMap.get(productId);
-        if (productDetails == null) return "";
-        List<ProductDetails.SubscriptionOfferDetails> subsDetail = productDetails.getSubscriptionOfferDetails();
-        if (subsDetail == null) return "";
-        List<ProductDetails.PricingPhase> pricingPhaseList = subsDetail.get(subsDetail.size() - 1).getPricingPhases().getPricingPhaseList();
-        Log.e(TAG, "getPriceSub: " + pricingPhaseList.get(pricingPhaseList.size() - 1).getFormattedPrice());
-        return pricingPhaseList.get(pricingPhaseList.size() - 1).getFormattedPrice();
+    fun getPriceSub(productId: String): String {
+        val productDetails = productDetailsSubsMap[productId] ?: return ""
+        val subsDetail = productDetails.subscriptionOfferDetails ?: return ""
+        val pricingPhaseList = subsDetail[subsDetail.size - 1].pricingPhases.pricingPhaseList
+        Log.e(TAG, "getPriceSub: " + pricingPhaseList[pricingPhaseList.size - 1].formattedPrice)
+        return pricingPhaseList[pricingPhaseList.size - 1].formattedPrice
     }
 
     /**
@@ -358,17 +341,16 @@ public class IAPManager {
      * @param type      The type of the product, either "in-app purchase" or "subscription".
      * @return The currency code of the product, or an empty string if the product details are not found.
      */
-    public String getCurrency(String productId, String type) {
-        ProductDetails productDetails = type.equals(typeINAPP) ? productDetailsInAppMap.get(productId) : productDetailsSubsMap.get(productId);
-        if (productDetails == null) return "";
-        if (type.equals(typeINAPP)) {
-            if (productDetails.getOneTimePurchaseOfferDetails() == null) return "";
-            return productDetails.getOneTimePurchaseOfferDetails().getPriceCurrencyCode();
+    fun getCurrency(productId: String, type: String): String {
+        val productDetails = if (type == INAPP) productDetailsInAppMap[productId] else productDetailsSubsMap[productId]
+        if (productDetails == null) return ""
+        if (type == INAPP) {
+            if (productDetails.oneTimePurchaseOfferDetails == null) return ""
+            return productDetails.oneTimePurchaseOfferDetails!!.priceCurrencyCode
         } else {
-            List<ProductDetails.SubscriptionOfferDetails> subsDetail = productDetails.getSubscriptionOfferDetails();
-            if (subsDetail == null) return "";
-            List<ProductDetails.PricingPhase> pricingPhaseList = subsDetail.get(subsDetail.size() - 1).getPricingPhases().getPricingPhaseList();
-            return pricingPhaseList.get(pricingPhaseList.size() - 1).getPriceCurrencyCode();
+            val subsDetail = productDetails.subscriptionOfferDetails ?: return ""
+            val pricingPhaseList = subsDetail[subsDetail.size - 1].pricingPhases.pricingPhaseList
+            return pricingPhaseList[pricingPhaseList.size - 1].priceCurrencyCode
         }
     }
 
@@ -379,17 +361,37 @@ public class IAPManager {
      * @param type      The type of the product, either "in-app purchase" or "subscription".
      * @return The price of the product in micros (1/1,000,000 of the currency unit), or 0 if the product details are not found.
      */
-    public double getPriceWithoutCurrency(String productId, String type) {
-        ProductDetails productDetails = type.equals(typeINAPP) ? productDetailsInAppMap.get(productId) : productDetailsSubsMap.get(productId);
-        if (productDetails == null) return 0;
-        if (type.equals(typeINAPP)) {
-            if (productDetails.getOneTimePurchaseOfferDetails() == null) return 0;
-            return productDetails.getOneTimePurchaseOfferDetails().getPriceAmountMicros();
+    fun getPriceWithoutCurrency(productId: String, type: String): Double {
+        val productDetails = if (type == INAPP) productDetailsInAppMap[productId] else productDetailsSubsMap[productId]
+        if (productDetails == null) return 0.toDouble()
+        if (type == INAPP) {
+            if (productDetails.oneTimePurchaseOfferDetails == null) return 0.toDouble()
+            return productDetails.oneTimePurchaseOfferDetails!!.priceAmountMicros.toDouble()
         } else {
-            List<ProductDetails.SubscriptionOfferDetails> subsDetail = productDetails.getSubscriptionOfferDetails();
-            if (subsDetail == null) return 0;
-            List<ProductDetails.PricingPhase> pricingPhaseList = subsDetail.get(subsDetail.size() - 1).getPricingPhases().getPricingPhaseList();
-            return pricingPhaseList.get(pricingPhaseList.size() - 1).getPriceAmountMicros();
+            val subsDetail = productDetails.subscriptionOfferDetails ?: return 0.toDouble()
+            val pricingPhaseList = subsDetail[subsDetail.size - 1].pricingPhases.pricingPhaseList
+            return pricingPhaseList[pricingPhaseList.size - 1].priceAmountMicros.toDouble()
+        }
+    }
+
+    companion object {
+        private const val TAG = "IAPManager"
+        const val PRODUCT_ID_TEST: String = "android.test.purchased"
+
+        const val INAPP: String = BillingClient.ProductType.INAPP
+        const val SUBS: String = BillingClient.ProductType.SUBS
+
+        @Volatile
+        private var INSTANCE: IAPManager? = null
+
+        @JvmStatic
+        fun getInstance(): IAPManager {
+            if (INSTANCE == null) {
+                synchronized(this) {
+                    INSTANCE = IAPManager()
+                }
+            }
+            return INSTANCE!!
         }
     }
 }

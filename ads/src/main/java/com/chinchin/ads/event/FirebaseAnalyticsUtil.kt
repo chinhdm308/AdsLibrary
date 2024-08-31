@@ -15,24 +15,24 @@ object FirebaseAnalyticsUtil {
     }
 
     fun logEventWithAds(params: Bundle?) {
-        firebaseAnalytics!!.logEvent("admob_paid_ad_impression", params)
+        firebaseAnalytics?.logEvent("admob_paid_ad_impression", params)
     }
 
     fun logPaidAdImpressionValue(bundle: Bundle?) {
-        firebaseAnalytics!!.logEvent("admob_paid_ad_impression_value", bundle)
+        firebaseAnalytics?.logEvent("admob_paid_ad_impression_value", bundle)
     }
 
     fun logClickAdsEvent(bundle: Bundle?) {
-        firebaseAnalytics!!.logEvent("admob_event_user_click_ads", bundle)
+        firebaseAnalytics?.logEvent("admob_event_user_click_ads", bundle)
     }
 
     fun logCurrentTotalRevenueAd(eventName: String?, bundle: Bundle?) {
-        firebaseAnalytics!!.logEvent(eventName!!, bundle)
+        firebaseAnalytics?.logEvent(eventName!!, bundle)
     }
 
     fun logTotalRevenue001Ad(bundle: Bundle?) {
-        firebaseAnalytics!!.logEvent("admob_daily_ads_revenue", bundle)
-        firebaseAnalytics!!.logEvent("paid_ad_impression_value_001", bundle)
+        firebaseAnalytics?.logEvent("admob_daily_ads_revenue", bundle)
+        firebaseAnalytics?.logEvent("paid_ad_impression_value_001", bundle)
     }
 
     @JvmStatic
@@ -40,7 +40,7 @@ object FirebaseAnalyticsUtil {
         Log.d(TAG, String.format("Time load ads splash %s.", timeLoad))
         val bundle = Bundle()
         bundle.putString("time_load", timeLoad.toString())
-        firebaseAnalytics!!.logEvent("event_time_load_ads_splash", bundle)
+        firebaseAnalytics?.logEvent("event_time_load_ads_splash", bundle)
     }
 
     @JvmStatic
@@ -48,7 +48,7 @@ object FirebaseAnalyticsUtil {
         Log.d(TAG, String.format("Time show ads  %s", timeLoad))
         val bundle = Bundle()
         bundle.putString("time_show", timeLoad.toString())
-        firebaseAnalytics!!.logEvent("event_time_show_ads_inter", bundle)
+        firebaseAnalytics?.logEvent("event_time_show_ads_inter", bundle)
     }
 
     fun logConfirmPurchaseGoogle(orderId: String?, purchaseId: String?, purchaseToken: String) {
@@ -66,7 +66,7 @@ object FirebaseAnalyticsUtil {
         bundle.putString("purchase_package_id", purchaseId)
         bundle.putString("purchase_token_part_1", tokenPart1)
         bundle.putString("purchase_token_part_2", tokenPart2)
-        firebaseAnalytics!!.logEvent("confirm_purchased_with_google", bundle)
+        firebaseAnalytics?.logEvent("confirm_purchased_with_google", bundle)
         Log.d(TAG, "logConfirmPurchaseGoogle: tracked")
     }
 
@@ -74,6 +74,6 @@ object FirebaseAnalyticsUtil {
         val bundle = Bundle()
         bundle.putDouble(FirebaseAnalytics.Param.VALUE, value)
         bundle.putString(FirebaseAnalytics.Param.CURRENCY, "USD")
-        firebaseAnalytics!!.logEvent("user_purchased_value", bundle)
+        firebaseAnalytics?.logEvent("user_purchased_value", bundle)
     }
 }

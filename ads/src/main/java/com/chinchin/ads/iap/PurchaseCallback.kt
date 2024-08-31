@@ -1,9 +1,7 @@
-package com.chinchin.ads.iap;
+package com.chinchin.ads.iap
 
-public class PurchaseCallback {
-    public void onUserCancelBilling() {
-    }
+class PurchaseCallback {
+    fun onUserCancelBilling() {}
 
-    public void onProductPurchased(String productId, String transactionDetails) {
-    }
+    fun onProductPurchased(productId: String?, transactionDetails: String?) {}
 }

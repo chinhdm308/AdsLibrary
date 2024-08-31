@@ -1,80 +1,69 @@
-package com.chinchin.ads.util.remote_config;
+package com.chinchin.ads.util.remote_config
+
+import android.content.Context
+import android.util.Log
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
+import com.google.android.gms.tasks.Task
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import java.util.concurrent.atomic.AtomicBoolean
 
 
-import android.content.Context;
-import android.util.Log;
+object RemoteConfig {
+    private const val TAG = "RemoteConfigLog"
+    private val isFinishedCallRemote = MutableLiveData(false)
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.MutableLiveData;
-
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
-import com.google.firebase.remoteconfig.FirebaseRemoteConfigValue;
-
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class RemoteConfig {
-    private static final String TAG = "RemoteConfigLog";
-    private static RemoteConfig INSTANCE = null;
-    private final MutableLiveData<Boolean> isFinishedCallRemote = new MutableLiveData<>(false);
-
-    public static RemoteConfig getInstance() {
-        if (INSTANCE == null) INSTANCE = new RemoteConfig();
-        return INSTANCE;
-    }
-
-    public void initFirebaseConfig(Context context, boolean isSetUp) {
-        Log.d(TAG, "isSetUp: " + isSetUp);
+    fun initFirebaseConfig(context: Context, isSetUp: Boolean) {
+        Log.d(TAG, "isSetUp: $isSetUp")
         if (isSetUp) {
-            FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-            remoteConfig.reset();
-            FirebaseRemoteConfigSettings configSettings = new FirebaseRemoteConfigSettings.Builder()
-                    .setMinimumFetchIntervalInSeconds(3600)
-                    .build();
-            remoteConfig.setConfigSettingsAsync(configSettings);
-            remoteConfig.fetchAndActivate().addOnCompleteListener(task -> {
-                Log.d(TAG, "initFirebaseConfig:");
-                if (task.getResult() != null && task.getResult()) {
-                    isFinishedCallRemote.setValue(false);
-                    fetchDataRemote(context);
+            val remoteConfig = FirebaseRemoteConfig.getInstance()
+            remoteConfig.reset()
+            val configSettings = FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(3600)
+                .build()
+            remoteConfig.setConfigSettingsAsync(configSettings)
+            remoteConfig.fetchAndActivate().addOnCompleteListener { task: Task<Boolean?> ->
+                Log.d(TAG, "initFirebaseConfig:")
+                if (task.result != null && task.result!!) {
+                    isFinishedCallRemote.value = false
+                    fetchDataRemote(context)
                 }
-                isFinishedCallRemote.postValue(true);
-            });
+                isFinishedCallRemote.postValue(true)
+            }
         } else {
-            isFinishedCallRemote.postValue(true);
+            isFinishedCallRemote.postValue(true)
         }
     }
 
-    private void fetchDataRemote(Context context) {
-        Log.d(TAG, "fetchDataRemote:");
-        FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.getInstance();
-        Map<String, FirebaseRemoteConfigValue> allValues = remoteConfig.getAll();
-        for (String key : allValues.keySet()) {
-            FirebaseRemoteConfigValue value = allValues.get(key);
+    private fun fetchDataRemote(context: Context) {
+        Log.d(TAG, "fetchDataRemote:")
+        val remoteConfig = FirebaseRemoteConfig.getInstance()
+        val allValues = remoteConfig.all
+        for (key in allValues.keys) {
+            val value = allValues[key]
             if (value != null) {
-                SharePreRemoteConfig.setConfig(context, key, value.asString());
+                SharePreRemoteConfig.setConfig(context, key, value.asString())
             }
         }
     }
 
-    public static String getRemoteConfigStringSingleParam(String adUnitId) {
-        FirebaseRemoteConfig mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance();
-        return mFirebaseRemoteConfig.getString(adUnitId);
-    }
-
-    public void onRemoteConfigFetched(@NonNull LifecycleOwner owner, @NonNull OnCompleteListener listener) {
-        AtomicBoolean action = new AtomicBoolean(true);
-        isFinishedCallRemote.observe(owner, finished -> {
+    fun onRemoteConfigFetched(owner: LifecycleOwner, listener: OnCompleteListener) {
+        val action = AtomicBoolean(true)
+        isFinishedCallRemote.observe(owner) { finished: Boolean ->
             if (finished && action.get()) {
-                action.set(false);
-                listener.onComplete();
+                action.set(false)
+                listener.onComplete()
             }
-        });
+        }
     }
 
-    public interface OnCompleteListener {
-        void onComplete();
+    fun getRemoteConfigStringSingleParam(adUnitId: String?): String {
+        val mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
+        return mFirebaseRemoteConfig.getString(adUnitId!!)
+    }
+
+    interface OnCompleteListener {
+        fun onComplete()
     }
 }

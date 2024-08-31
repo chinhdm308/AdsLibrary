@@ -30,6 +30,9 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -115,6 +118,10 @@ dependencies {
 
 afterEvaluate {
     publishing {
+        repositories {
+            mavenLocal()
+        }
+
         publications {
             create<MavenPublication>("release") {
                 // Applies the component for the release build variant.

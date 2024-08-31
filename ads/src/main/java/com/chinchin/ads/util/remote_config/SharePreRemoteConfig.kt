@@ -1,44 +1,41 @@
-package com.chinchin.ads.util.remote_config;
+package com.chinchin.ads.util.remote_config
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Context
 
-public class SharePreRemoteConfig {
-    private static final String NAME_SHARE_PRE_REMOTE_CONFIG = "NAME_SHARE_PRE_REMOTE_CONFIG";
+object SharePreRemoteConfig {
+    private const val NAME_SHARE_PRE_REMOTE_CONFIG = "NAME_SHARE_PRE_REMOTE_CONFIG"
 
-    public static void setConfig(Context context, String key, String value) {
-        SharedPreferences pre = context.getSharedPreferences(NAME_SHARE_PRE_REMOTE_CONFIG, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pre.edit();
-        editor.putString(key, value);
-        editor.apply();
+    fun setConfig(context: Context, key: String?, value: String?) {
+        val pre = context.getSharedPreferences(NAME_SHARE_PRE_REMOTE_CONFIG, Context.MODE_PRIVATE)
+        val editor = pre.edit()
+        editor.putString(key, value)
+        editor.apply()
     }
 
-    public static String getConfigString(Context context, String key) {
-        SharedPreferences pre = context.getSharedPreferences(NAME_SHARE_PRE_REMOTE_CONFIG, Context.MODE_PRIVATE);
-        return pre.getString(key, "");
+    fun getConfigString(context: Context, key: String?): String? {
+        val pre = context.getSharedPreferences(NAME_SHARE_PRE_REMOTE_CONFIG, Context.MODE_PRIVATE)
+        return pre.getString(key, "")
     }
 
-    public static Boolean getConfigBoolean(Context context, String key) {
-        return Boolean.valueOf(getConfigString(context, key));
+    fun getConfigBoolean(context: Context, key: String?): Boolean {
+        return getConfigString(context, key).toBoolean()
     }
 
-    public static Float getConfigFloat(Context context, String key) {
-        try {
-            return Float.valueOf(getConfigString(context, key));
-        } catch (NumberFormatException e) {
-            return 0.0f;
+    fun getConfigFloat(context: Context, key: String?): Float {
+        return try {
+            getConfigString(context, key)!!.toFloat()
+        } catch (e: NumberFormatException) {
+            0.0f
         }
     }
 
-    public static Integer getConfigInt(Context context, String key) {
+    fun getConfigInt(context: Context, key: String?): Int {
         try {
-            String value = getConfigString(context, key);
-            if (value.contains("."))
-                return Math.round(Float.parseFloat(value));
-            else
-                return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return 0;
+            val value = getConfigString(context, key)
+            return if (value!!.contains(".")) Math.round(value.toFloat())
+            else value.toInt()
+        } catch (e: NumberFormatException) {
+            return 0
         }
     }
 }

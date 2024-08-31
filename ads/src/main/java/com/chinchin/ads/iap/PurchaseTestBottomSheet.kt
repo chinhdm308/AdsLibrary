@@ -1,69 +1,67 @@
-package com.chinchin.ads.iap;
+package com.chinchin.ads.iap
 
-import android.content.Context;
-import android.os.Bundle;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.content.Context
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import com.android.billingclient.api.ProductDetails
+import com.chinchin.ads.R
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import org.json.JSONObject
 
-import androidx.annotation.NonNull;
+class PurchaseTestBottomSheet(
+    val context: Context,
+    private val typeIap: String,
+    private val productDetails: ProductDetails?,
+    private val purchaseCallback: PurchaseCallback?,
+) : BottomSheetDialog(context) {
 
-import com.android.billingclient.api.ProductDetails;
-import com.chinchin.ads.R;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
+    private var txtTitle: TextView? = null
+    private var txtDescription: TextView? = null
+    private var txtId: TextView? = null
+    private var txtPrice: TextView? = null
+    private var txtContinuePurchase: TextView? = null
 
-public class PurchaseTestBottomSheet extends BottomSheetDialog {
-    private ProductDetails productDetails;
-    private String typeIap;
-    private TextView txtTitle;
-    private TextView txtDescription;
-    private TextView txtId;
-    private TextView txtPrice;
-    private TextView txtContinuePurchase;
-    private PurchaseCallback purchaseCallback;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.view_billing_test)
 
-    public PurchaseTestBottomSheet(String typeIap, ProductDetails productDetails, @NonNull Context context, PurchaseCallback purchaseCallback) {
-        super(context);
-        this.productDetails = productDetails;
-        this.typeIap = typeIap;
-        this.purchaseCallback = purchaseCallback;
-    }
+        txtTitle = findViewById(R.id.txtTitle)
+        txtDescription = findViewById(R.id.txtDescription)
+        txtId = findViewById(R.id.txtId)
+        txtPrice = findViewById(R.id.txtPrice)
+        txtContinuePurchase = findViewById(R.id.txtContinuePurchase)
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.view_billing_test);
-        txtTitle = findViewById(R.id.txtTitle);
-        txtDescription = findViewById(R.id.txtDescription);
-        txtId = findViewById(R.id.txtId);
-        txtPrice = findViewById(R.id.txtPrice);
-        txtContinuePurchase = findViewById(R.id.txtContinuePurchase);
         if (productDetails == null) {
-
+            //TODO: something
         } else {
-            txtTitle.setText(productDetails.getTitle());
-            txtDescription.setText(productDetails.getDescription());
-            txtId.setText(productDetails.getProductId());
-            if (typeIap.equals(IAPManager.typeINAPP)) {
-                txtPrice.setText(productDetails.getOneTimePurchaseOfferDetails().getFormattedPrice());
+            txtTitle?.text = productDetails.title
+            txtDescription?.text = productDetails.description
+            txtId?.text = productDetails.productId
+            if (typeIap == IAPManager.INAPP) {
+                txtPrice?.text = productDetails.oneTimePurchaseOfferDetails!!.formattedPrice
             } else {
-                txtPrice.setText(productDetails.getSubscriptionOfferDetails().get(0).getPricingPhases().getPricingPhaseList().get(0).getFormattedPrice());
+                txtPrice?.text = productDetails.subscriptionOfferDetails!![0].pricingPhases.pricingPhaseList[0].formattedPrice
             }
 
-            txtContinuePurchase.setOnClickListener(v -> {
+            txtContinuePurchase!!.setOnClickListener { v: View? ->
                 if (purchaseCallback != null) {
-                    IAPManager.getInstance().setPurchase(true);
-                    purchaseCallback.onProductPurchased(productDetails.getProductId(), "{\"productId\":\"android.test.purchased\",\"type\":\"inapp\",\"title\":\"Tiêu đề mẫu\",\"description\":\"Mô tả mẫu về sản phẩm: android.test.purchased.\",\"skuDetailsToken\":\"AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC\",\"oneTimePurchaseOfferDetails\":{\"priceAmountMicros\":23207002450,\"priceCurrencyCode\":\"VND\",\"formattedPrice\":\"23.207 ₫\"}}', parsedJson={\"productId\":\"android.test.purchased\",\"type\":\"inapp\",\"title\":\"Tiêu đề mẫu\",\"description\":\"Mô tả mẫu về sản phẩm: android.test.purchased.\",\"skuDetailsToken\":\"AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC\",\"oneTimePurchaseOfferDetails\":{\"priceAmountMicros\":23207002450,\"priceCurrencyCode\":\"VND\",\"formattedPrice\":\"23.207 ₫\"}}, productId='android.test.purchased', productType='inapp', title='Tiêu đề mẫu', productDetailsToken='AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC', subscriptionOfferDetails=null}");
+                    IAPManager.getInstance().setIsPurchase(true)
+                    purchaseCallback.onProductPurchased(
+                        productDetails.productId,
+                        "{\"productId\":\"android.test.purchased\",\"type\":\"inapp\",\"title\":\"Tiêu đề mẫu\",\"description\":\"Mô tả mẫu về sản phẩm: android.test.purchased.\",\"skuDetailsToken\":\"AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC\",\"oneTimePurchaseOfferDetails\":{\"priceAmountMicros\":23207002450,\"priceCurrencyCode\":\"VND\",\"formattedPrice\":\"23.207 ₫\"}}', parsedJson={\"productId\":\"android.test.purchased\",\"type\":\"inapp\",\"title\":\"Tiêu đề mẫu\",\"description\":\"Mô tả mẫu về sản phẩm: android.test.purchased.\",\"skuDetailsToken\":\"AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC\",\"oneTimePurchaseOfferDetails\":{\"priceAmountMicros\":23207002450,\"priceCurrencyCode\":\"VND\",\"formattedPrice\":\"23.207 ₫\"}}, productId='android.test.purchased', productType='inapp', title='Tiêu đề mẫu', productDetailsToken='AEuhp4Izz50wTvd7YM9wWjPLp8hZY7jRPhBEcM9GAbTYSdUM_v2QX85e8UYklstgqaRC', subscriptionOfferDetails=null}"
+                    )
                 }
-                dismiss();
-            });
+                dismiss()
+            }
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        int w = ViewGroup.LayoutParams.MATCH_PARENT;
-        int h = ViewGroup.LayoutParams.WRAP_CONTENT;
-        getWindow().setLayout(w, h);
+    override fun onStart() {
+        super.onStart()
+        val w = ViewGroup.LayoutParams.MATCH_PARENT
+        val h = ViewGroup.LayoutParams.WRAP_CONTENT
+        window?.setLayout(w, h)
     }
 }

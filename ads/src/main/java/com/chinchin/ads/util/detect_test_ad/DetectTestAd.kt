@@ -24,6 +24,7 @@ class DetectTestAd {
 
         private var INSTANCE: DetectTestAd? = null
 
+        @JvmStatic
         val instance: DetectTestAd?
             get() {
                 if (INSTANCE == null) {

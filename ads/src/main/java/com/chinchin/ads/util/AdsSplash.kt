@@ -55,7 +55,7 @@ class AdsSplash {
     }
 
 
-    fun showAdsSplashApi(activity: AppCompatActivity?, openCallback: AdCallback?, interCallback: InterCallback) {
+    fun showAdsSplashApi(activity: AppCompatActivity, openCallback: AdCallback?, interCallback: InterCallback) {
         Log.d(TAG, "state show: $state")
         when (state) {
             STATE.OPEN -> AppOpenManager.getInstance().loadOpenAppAdSplashFloor(activity, openAdId!!, true, openCallback!!)
@@ -64,7 +64,7 @@ class AdsSplash {
         }
     }
 
-    fun onCheckShowSplashWhenFail(activity: AppCompatActivity?, openCallback: AdCallback?, interCallback: InterCallback?) {
+    fun onCheckShowSplashWhenFail(activity: AppCompatActivity, openCallback: AdCallback?, interCallback: InterCallback?) {
         if (state == STATE.OPEN) AppOpenManager.getInstance().onCheckShowSplashWhenFailNew(activity, openCallback!!, 1000)
         else if (state == STATE.INTER) Admob.getInstance().onCheckShowSplashWhenFail(activity, interCallback, 1000)
     }
