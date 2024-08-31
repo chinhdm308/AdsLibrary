@@ -2055,7 +2055,7 @@ public class Admob {
         }
         RewardAdModel rewardAdModel = null;
         for (RewardAdModel item : listReward) {
-            if (item.getIdAd().equals(idAd)) {
+            if (item.idAd.equals(idAd)) {
                 rewardAdModel = item;
             }
         }
@@ -2085,7 +2085,7 @@ public class Admob {
         AppOpenManager.getInstance().disableAppResume();
         RewardAdModel rewardAdModel = null;
         for (RewardAdModel item : listReward) {
-            if (item.getIdAd().equals(idAd)) {
+            if (item.idAd.equals(idAd)) {
                 rewardAdModel = item;
             }
         }
@@ -2137,7 +2137,7 @@ public class Admob {
         AppOpenManager.getInstance().disableAppResume();
         RewardAdModel rewardAdModel = null;
         for (RewardAdModel item : listReward) {
-            if (item.getIdAd().equals(idAd)) {
+            if (item.idAd.equals(idAd)) {
                 rewardAdModel = item;
             }
         }

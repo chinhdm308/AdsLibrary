@@ -1,37 +1,25 @@
-package com.chinchin.ads.util.reward;
+package com.chinchin.ads.util.reward
 
-import androidx.annotation.NonNull;
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.rewarded.RewardItem
 
-import com.google.android.gms.ads.AdError;
-import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.rewarded.RewardItem;
+open class RewardAdCallback {
+    open fun onAdFailedToLoad(loadAdError: LoadAdError) {}
 
-public class RewardAdCallback {
+    open fun onAdLoaded(isSuccessful: Boolean?) {}
 
-    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-    }
+    open fun onAdDismissed() {}
 
-    public void onAdLoaded(Boolean isSuccessful) {
-    }
+    open fun onAdFailedToShow(adError: AdError) {}
 
-    public void onAdDismissed() {
-    }
+    open fun onAdShowed() {}
 
-    public void onAdFailedToShow(@NonNull AdError adError) {
-    }
+    open fun onAdClicked() {}
 
-    public void onAdShowed() {
-    }
+    open fun onNextAction() {}
 
-    public void onAdClicked() {
-    }
+    open fun onAdImpression() {}
 
-    public void onNextAction() {
-    }
-
-    public void onAdImpression() {
-    }
-
-    public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
-    }
+    open fun onUserEarnedReward(rewardItem: RewardItem) {}
 }

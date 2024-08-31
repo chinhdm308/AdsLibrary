@@ -1,9 +1,7 @@
-package com.chinchin.ads.iap;
+package com.chinchin.ads.iap
 
-public class BillingCallback {
-    public void onBillingSetupFinished(int resultCode) {
-    }
+class BillingCallback {
+    fun onBillingSetupFinished(resultCode: Int) {}
 
-    public void onBillingServiceDisconnected() {
-    }
+    fun onBillingServiceDisconnected() {}
 }

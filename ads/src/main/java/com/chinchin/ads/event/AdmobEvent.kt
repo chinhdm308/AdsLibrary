@@ -124,7 +124,7 @@ object AdmobEvent {
     @JvmStatic
     fun logPaidAdImpression(adValue: AdValue, adUnitId: String, adType: AdType) {
         Log.e("logPaidAdImpression", adValue.currencyCode)
-        AppsflyerEvent.getInstance().pushTrackEventAdmob(adValue, adUnitId, adType)
+        AppsflyerEvent.pushTrackEventAdmob(adValue, adUnitId, adType)
         logEventWithAds(adValue.valueMicros.toFloat(), adValue.precisionType, adUnitId, adType.toString())
     }
 }
