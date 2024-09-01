@@ -124,7 +124,6 @@ afterEvaluate {
             create<MavenPublication>("release") {
                 // Applies the component for the release build variant.
                 from(components["release"])
-
                 groupId = "com.chinchin.ads"
                 artifactId = "ads"
                 version = "1.0.0"

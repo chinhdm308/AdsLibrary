@@ -10,8 +10,8 @@ import com.chinchin.ads.R
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.json.JSONObject
 
-class PurchaseTestBottomSheet(
-    val context: Context,
+class PurchaseTestBottomSheet constructor(
+    context: Context,
     private val typeIap: String,
     private val productDetails: ProductDetails?,
     private val purchaseCallback: PurchaseCallback?,
