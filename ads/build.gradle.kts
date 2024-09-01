@@ -1,5 +1,3 @@
-import org.apache.commons.logging.LogFactory.release
-
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
